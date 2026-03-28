@@ -7,6 +7,7 @@ namespace SkiaSharp.Tests;
 public class SKBlenderTest
 {
 	[SkippableFact]
+	[Trait(Traits.Category.Key, Traits.Category.Values.Smoke)]
 	public void SameBlendModeReturnsSameBlenderInstance()
 	{
 		var blender1 = SKBlender.CreateBlendMode(SKBlendMode.Src);
@@ -39,6 +40,19 @@ public class SKBlenderTest
 	public void InvalidBlendModeThrowsArgumentException()
 	{
 		Assert.Throws<ArgumentOutOfRangeException>(() => SKBlender.CreateBlendMode((SKBlendMode)100));
+	}
+
+	[SkippableFact]
+	public void AllValidBlendModesCreateBlender()
+	{
+		// Verify that all valid blend mode enum values can create blenders
+		// This test ensures the static constructor properly initializes all blend modes
+		// even when reflection is disabled (AoT compatibility)
+		foreach (SKBlendMode mode in Enum.GetValues(typeof(SKBlendMode)))
+		{
+			var blender = SKBlender.CreateBlendMode(mode);
+			Assert.NotNull(blender);
+		}
 	}
 
 	public abstract class SurfaceTestBase : SKTest

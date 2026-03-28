@@ -92,49 +92,72 @@ if (IsRunningOnWindows ()) {
     throw new Exception ("This script is not running on a known platform.");
 }
 
-var PREVIEW_FEED_URL = Argument ("previewFeed", "https://pkgs.dev.azure.com/xamarin/public/_packaging/SkiaSharp/nuget/v3/index.json");
+var CI_ARTIFACTS_FEED_URL = Argument ("previewFeed", "https://pkgs.dev.azure.com/xamarin/public/_packaging/SkiaSharp-CI/nuget/v3/index.json");
 
-var TRACKED_NUGETS = new Dictionary<string, Version> {
-    { "SkiaSharp",                                     new Version (1, 60, 0) },
-    { "SkiaSharp.NativeAssets.Linux",                  new Version (1, 60, 0) },
-    { "SkiaSharp.NativeAssets.Linux.NoDependencies",   new Version (1, 60, 0) },
-    { "SkiaSharp.NativeAssets.NanoServer",             new Version (1, 60, 0) },
-    { "SkiaSharp.NativeAssets.WebAssembly",            new Version (1, 60, 0) },
-    { "SkiaSharp.NativeAssets.Android",                new Version (1, 60, 0) },
-    { "SkiaSharp.NativeAssets.iOS",                    new Version (1, 60, 0) },
-    { "SkiaSharp.NativeAssets.MacCatalyst",            new Version (1, 60, 0) },
-    { "SkiaSharp.NativeAssets.macOS",                  new Version (1, 60, 0) },
-    { "SkiaSharp.NativeAssets.Tizen",                  new Version (1, 60, 0) },
-    { "SkiaSharp.NativeAssets.tvOS",                   new Version (1, 60, 0) },
-    { "SkiaSharp.NativeAssets.Win32",                  new Version (1, 60, 0) },
-    { "SkiaSharp.NativeAssets.WinUI",                  new Version (1, 60, 0) },
-    { "SkiaSharp.Views",                               new Version (1, 60, 0) },
-    { "SkiaSharp.Views.Desktop.Common",                new Version (1, 60, 0) },
-    { "SkiaSharp.Views.Gtk3",                          new Version (1, 60, 0) },
-    { "SkiaSharp.Views.WindowsForms",                  new Version (1, 60, 0) },
-    { "SkiaSharp.Views.WPF",                           new Version (1, 60, 0) },
-    { "SkiaSharp.Views.Uno.WinUI",                     new Version (1, 60, 0) },
-    { "SkiaSharp.Views.WinUI",                         new Version (1, 60, 0) },
-    { "SkiaSharp.Views.Maui.Core",                     new Version (1, 60, 0) },
-    { "SkiaSharp.Views.Maui.Controls",                 new Version (1, 60, 0) },
-    { "SkiaSharp.Views.Blazor",                        new Version (1, 60, 0) },
-    { "HarfBuzzSharp",                                 new Version (1, 0, 0) },
-    { "HarfBuzzSharp.NativeAssets.Android",            new Version (1, 0, 0) },
-    { "HarfBuzzSharp.NativeAssets.iOS",                new Version (1, 0, 0) },
-    { "HarfBuzzSharp.NativeAssets.Linux",              new Version (1, 0, 0) },
-    { "HarfBuzzSharp.NativeAssets.MacCatalyst",        new Version (1, 0, 0) },
-    { "HarfBuzzSharp.NativeAssets.macOS",              new Version (1, 0, 0) },
-    { "HarfBuzzSharp.NativeAssets.Tizen",              new Version (1, 0, 0) },
-    { "HarfBuzzSharp.NativeAssets.tvOS",               new Version (1, 0, 0) },
-    { "HarfBuzzSharp.NativeAssets.WebAssembly",        new Version (1, 0, 0) },
-    { "HarfBuzzSharp.NativeAssets.Win32",              new Version (1, 0, 0) },
-    { "SkiaSharp.HarfBuzz",                            new Version (1, 60, 0) },
-    { "SkiaSharp.Skottie",                             new Version (1, 60, 0) },
-    { "SkiaSharp.SceneGraph",                          new Version (1, 60, 0) },
-    { "SkiaSharp.Resources",                           new Version (1, 60, 0) },
-    { "SkiaSharp.Vulkan.SharpVk",                      new Version (1, 60, 0) },
-    { "SkiaSharp.Direct3D.Vortice",                    new Version (1, 60, 0) },
+var SUPPORTED_NUGETS = new Dictionary<string, Version> {
+    // SkiaSharp core
+    { "SkiaSharp",                                     new Version (2, 80, 0) },
+    { "SkiaSharp.NativeAssets.Linux",                  new Version (2, 80, 0) },
+    { "SkiaSharp.NativeAssets.Linux.NoDependencies",   new Version (2, 80, 0) },
+    { "SkiaSharp.NativeAssets.NanoServer",             new Version (2, 80, 0) },
+    { "SkiaSharp.NativeAssets.WebAssembly",            new Version (2, 80, 0) },
+    { "SkiaSharp.NativeAssets.Android",                new Version (2, 80, 0) },
+    { "SkiaSharp.NativeAssets.iOS",                    new Version (2, 80, 0) },
+    { "SkiaSharp.NativeAssets.MacCatalyst",            new Version (2, 80, 0) },
+    { "SkiaSharp.NativeAssets.macOS",                  new Version (2, 80, 0) },
+    { "SkiaSharp.NativeAssets.Tizen",                  new Version (2, 80, 0) },
+    { "SkiaSharp.NativeAssets.tvOS",                   new Version (2, 80, 0) },
+    { "SkiaSharp.NativeAssets.Win32",                  new Version (2, 80, 0) },
+    { "SkiaSharp.NativeAssets.WinUI",                  new Version (2, 80, 0) },
+    { "SkiaSharp.Views",                               new Version (2, 80, 0) },
+    { "SkiaSharp.Views.Desktop.Common",                new Version (2, 80, 0) },
+    { "SkiaSharp.Views.Gtk3",                          new Version (2, 80, 0) },
+    { "SkiaSharp.Views.Gtk4",                          new Version (3, 119, 0) },
+    { "SkiaSharp.Views.WindowsForms",                  new Version (2, 80, 0) },
+    { "SkiaSharp.Views.WPF",                           new Version (2, 80, 0) },
+    { "SkiaSharp.Views.Uno.WinUI",                     new Version (2, 80, 0) },
+    { "SkiaSharp.Views.WinUI",                         new Version (2, 80, 0) },
+    { "SkiaSharp.Views.Maui.Core",                     new Version (2, 88, 0) },
+    { "SkiaSharp.Views.Maui.Controls",                 new Version (2, 88, 0) },
+    { "SkiaSharp.Views.Blazor",                        new Version (2, 80, 0) },
+    // HarfBuzzSharp core
+    { "HarfBuzzSharp",                                 new Version (2, 6, 1) },
+    { "HarfBuzzSharp.NativeAssets.Android",            new Version (2, 6, 1) },
+    { "HarfBuzzSharp.NativeAssets.iOS",                new Version (2, 6, 1) },
+    { "HarfBuzzSharp.NativeAssets.Linux",              new Version (2, 6, 1) },
+    { "HarfBuzzSharp.NativeAssets.MacCatalyst",        new Version (2, 6, 1) },
+    { "HarfBuzzSharp.NativeAssets.macOS",              new Version (2, 6, 1) },
+    { "HarfBuzzSharp.NativeAssets.Tizen",              new Version (2, 6, 1) },
+    { "HarfBuzzSharp.NativeAssets.tvOS",               new Version (2, 6, 1) },
+    { "HarfBuzzSharp.NativeAssets.WebAssembly",        new Version (2, 6, 1) },
+    { "HarfBuzzSharp.NativeAssets.Win32",              new Version (2, 6, 1) },
+    // Extras
+    { "SkiaSharp.HarfBuzz",                            new Version (2, 80, 0) },
+    { "SkiaSharp.Skottie",                             new Version (2, 88, 0) },
+    { "SkiaSharp.SceneGraph",                          new Version (2, 88, 0) },
+    { "SkiaSharp.Resources",                           new Version (2, 88, 0) },
+    { "SkiaSharp.Vulkan.SharpVk",                      new Version (2, 80, 0) },
+    { "SkiaSharp.Direct3D.Vortice",                    new Version (2, 88, 0) },
 };
+
+var OBSOLETED_NUGETS = new Dictionary<string, Version> {
+    // Obsolete packages no longer built but still tracked for documentation
+    { "SkiaSharp.NativeAssets.UWP",                    new Version (2, 80, 0) },
+    { "SkiaSharp.NativeAssets.watchOS",                new Version (2, 80, 0) },
+    { "SkiaSharp.Views.Gtk2",                          new Version (2, 80, 0) },
+    { "SkiaSharp.Views.Maui.Controls.Compatibility",   new Version (2, 88, 0) },
+    { "SkiaSharp.Views.Forms",                         new Version (2, 80, 0) },
+    { "SkiaSharp.Views.Forms.WPF",                     new Version (2, 80, 0) },
+    { "SkiaSharp.Views.Forms.GTK",                     new Version (2, 80, 0) },
+    { "SkiaSharp.Views.Uno",                           new Version (2, 80, 0) },
+    { "SkiaSharp.Views.NativeAssets.UWP",              new Version (2, 80, 0) },
+    { "HarfBuzzSharp.NativeAssets.UWP",                new Version (2, 6, 1) },
+    { "HarfBuzzSharp.NativeAssets.watchOS",            new Version (2, 6, 1) },
+};
+
+var TRACKED_NUGETS = SUPPORTED_NUGETS
+    .Concat(OBSOLETED_NUGETS)
+    .ToDictionary(x => x.Key, x => x.Value);
 
 var PREVIEW_ONLY_NUGETS = new List<string> {
 };
@@ -260,7 +283,7 @@ Task ("tests-netcore")
 
     var failedTests = 0;
 
-    var tfm = "net8.0";
+    var tfm = "net10.0";
     var testAssemblies = new List<string> { "SkiaSharp.Tests.Console" };
     if (SUPPORT_VULKAN)
         testAssemblies.Add ("SkiaSharp.Vulkan.Tests.Console");
@@ -308,9 +331,19 @@ Task ("tests-android")
 
     FilePath csproj = "./tests/SkiaSharp.Tests.Devices/SkiaSharp.Tests.Devices.csproj";
     var configuration = "Release";
-    var tfm = "net8.0-android";
+    var tfm = "net10.0-android36.0";
     var rid = "android-" + RuntimeInformation.ProcessArchitecture.ToString ().ToLower ();
     FilePath app = $"./tests/SkiaSharp.Tests.Devices/bin/{configuration}/{tfm}/{rid}/com.companyname.SkiaSharpTests-Signed.apk";
+
+    Information ("=== Android Test Build Configuration ===");
+    Information ("  Project:       {0}", csproj);
+    Information ("  Configuration: {0}", configuration);
+    Information ("  TFM:           {0}", tfm);
+    Information ("  RID:           {0}", rid);
+    Information ("  App Path:      {0}", app);
+    Information ("  OS:            {0}", RuntimeInformation.OSDescription);
+    Information ("  Arch:          {0}", RuntimeInformation.ProcessArchitecture);
+    Information ("========================================");
 
     // build the app
     if (!SKIP_BUILD) {
@@ -340,9 +373,9 @@ Task ("tests-ios")
 
     FilePath csproj = "./tests/SkiaSharp.Tests.Devices/SkiaSharp.Tests.Devices.csproj";
     var configuration = "Debug";
-    var tfm = "net8.0-ios";
+    var tfm = "net10.0-ios26.2";
     var rid = "iossimulator-" + RuntimeInformation.ProcessArchitecture.ToString ().ToLower ();
-    FilePath app = $"./tests/SkiaSharp.Tests.Devices/bin/{configuration}/{tfm}/{rid}/SkiaSharp.Tests.Devices.app";
+    var outputDir = $"./tests/SkiaSharp.Tests.Devices/bin/{configuration}/{tfm}/{rid}";
 
     // package the app
     if (!SKIP_BUILD) {
@@ -353,6 +386,13 @@ Task ("tests-ios")
                 { "RuntimeIdentifier", rid },
             });
     }
+
+    // find the .app bundle (name may differ from AssemblyName in .NET 10)
+    var appBundles = GetDirectories ($"{outputDir}/*.app");
+    if (!appBundles.Any ())
+        throw new Exception ($"No .app bundle found in {outputDir}");
+    var app = appBundles.First ();
+    Information ("Found app bundle: {0}", app);
 
     // run the tests
     DirectoryPath results = $"./output/logs/testlogs/SkiaSharp.Tests.Devices.iOS/{DATE_TIME_STR}";
@@ -372,9 +412,9 @@ Task ("tests-maccatalyst")
 
     FilePath csproj = "./tests/SkiaSharp.Tests.Devices/SkiaSharp.Tests.Devices.csproj";
     var configuration = "Debug";
-    var tfm = "net8.0-maccatalyst";
+    var tfm = "net10.0-maccatalyst26.2";
     var rid = "maccatalyst-" + RuntimeInformation.ProcessArchitecture.ToString ().ToLower ();
-    FilePath app = $"./tests/SkiaSharp.Tests.Devices/bin/{configuration}/{tfm}/{rid}/SkiaSharp.Tests.Devices.app";
+    var outputDir = $"./tests/SkiaSharp.Tests.Devices/bin/{configuration}/{tfm}/{rid}";
 
     // package the app
     if (!SKIP_BUILD) {
@@ -385,6 +425,13 @@ Task ("tests-maccatalyst")
                 { "RuntimeIdentifier", rid },
             });
     }
+
+    // find the .app bundle (name may differ from AssemblyName in .NET 10)
+    var appBundles = GetDirectories ($"{outputDir}/*.app");
+    if (!appBundles.Any ())
+        throw new Exception ($"No .app bundle found in {outputDir}");
+    var app = appBundles.First ();
+    Information ("Found app bundle: {0}", app);
 
     // run the tests
     DirectoryPath results = $"./output/logs/testlogs/SkiaSharp.Tests.Devices.MacCatalyst/{DATE_TIME_STR}";
@@ -493,7 +540,8 @@ Task ("samples")
         : "samples";
     var solutions =
         GetFiles ($"./output/{actualSamples}/**/*.sln").Union (
-        GetFiles ($"./output/{actualSamples}/**/*.slnf"))
+        GetFiles ($"./output/{actualSamples}/**/*.slnf")).Union (
+        GetFiles ($"./output/{actualSamples}/**/*.slnx"))
         .OrderBy (x => x.FullPath)
         .ToArray ();
 
@@ -518,7 +566,8 @@ Task ("samples")
                 // this is the main solution
                 var variants =
                     GetFiles (sln.GetDirectory ().CombineWithFilePath (name) + ".*.sln").Union (
-                    GetFiles (sln.GetDirectory ().CombineWithFilePath (name) + ".*.slnf"));
+                    GetFiles (sln.GetDirectory ().CombineWithFilePath (name) + ".*.slnf")).Union (
+                    GetFiles (sln.GetDirectory ().CombineWithFilePath (name) + ".*.slnx"));
                 if (!variants.Any ()) {
                     // there is no platform variant
                     BuildSample (sln, dryrun);
@@ -629,86 +678,210 @@ Task ("nuget-special")
         Information ("  - {0}" + " ".PadRight(max - version.Key.Length) + "=> {1}", version.Key, version.Value);
     }
 
-    // get a list of all the nuspecs to pack
-    var specials = new Dictionary<string, string> ();
+    // _NativeAssets handling (per-platform raw native binaries)
     var nativePlatforms = GetDirectories ("./output/native/*")
         .Select (d => d.GetDirectoryName ())
         .ToArray ();
     if (nativePlatforms.Length > 0) {
-        specials[$"_NativeAssets"] = $"native";
+        var nativeSpecials = new Dictionary<string, string> ();
+        nativeSpecials["_NativeAssets"] = "native";
         foreach (var platform in nativePlatforms) {
-            specials[$"_NativeAssets.{platform}"] = $"native/{platform}";
+            nativeSpecials[$"_NativeAssets.{platform}"] = $"native/{platform}";
         }
-    }
-    if (GetFiles ("./output/nugets/*.nupkg").Count > 0) {
-        specials[$"_NuGets"] = $"nugets";
-        specials[$"_NuGetsPreview"] = $"nugets";
-        specials[$"_Symbols"] = $"nugets-symbols";
-        specials[$"_SymbolsPreview"] = $"nugets-symbols";
-    }
-    Information ("Detected {0} special artifacts to process:", specials.Count);
-    max = 0;
-    foreach (var special in specials) {
-        if (special.Key.Length > max)
-            max = special.Key.Length + 1;
-    }
-    foreach (var special in specials) {
-        Information ("  - {0}" + " ".PadRight(max - special.Key.Length) + "=> {1}", special.Key, special.Value);
-    }
 
-    foreach (var pair in specials) {
-        var id = pair.Key;
-        var path = pair.Value;
-        var nuspec = $"./output/{path}/{id}.nuspec";
+        Information ("Detected {0} native asset artifacts to process:", nativeSpecials.Count);
+        max = 0;
+        foreach (var special in nativeSpecials) {
+            if (special.Key.Length > max)
+                max = special.Key.Length + 1;
+        }
+        foreach (var special in nativeSpecials) {
+            Information ("  - {0}" + " ".PadRight(max - special.Key.Length) + "=> {1}", special.Key, special.Value);
+        }
 
-        DeleteFiles ($"./output/{path}/*.nuspec");
+        foreach (var pair in nativeSpecials) {
+            var id = pair.Key;
+            var path = pair.Value;
+            var nuspec = $"./output/{path}/{id}.nuspec";
 
-        foreach (var version in versions) {
-            // update the version
-            var packageVersion = version.Value;
-            var fn = id.StartsWith ("_NativeAssets.") ? "_NativeAssets" : id;
-            var xdoc = XDocument.Load ($"./scripts/nuget/{fn}.nuspec");
-            var metadata = xdoc.Root.Element ("metadata");
-            metadata.Element ("version").Value = packageVersion;
-            metadata.Element ("id").Value = id;
+            DeleteFiles ($"./output/{path}/*.nuspec");
 
-            if (id == "_NativeAssets") {
-                // handle the root package
-                var dependencies = metadata.Element ("dependencies");
-                foreach (var platform in nativePlatforms) {
-                    dependencies.Add (new XElement ("dependency",
-                        new XAttribute ("id", $"_NativeAssets.{platform}"),
-                        new XAttribute ("version", packageVersion)));
+            foreach (var version in versions) {
+                var packageVersion = version.Value;
+
+                var xdoc = XDocument.Load ("./scripts/nuget/_NativeAssets.nuspec");
+                var metadata = xdoc.Root.Element ("metadata");
+                metadata.Element ("version").Value = packageVersion;
+                metadata.Element ("id").Value = id;
+
+                if (id == "_NativeAssets") {
+                    var dependencies = metadata.Element ("dependencies");
+                    foreach (var platform in nativePlatforms) {
+                        dependencies.Add (new XElement ("dependency",
+                            new XAttribute ("id", $"_NativeAssets.{platform}"),
+                            new XAttribute ("version", packageVersion)));
+                    }
+                } else {
+                    var platform = id.Substring (id.IndexOf (".") + 1);
+                    var files = xdoc.Root.Element ("files");
+                    files.Add (new XElement ("file",
+                        new XAttribute ("src", "**"),
+                        new XAttribute ("target", $"tools/{platform}")));
                 }
-            } else if (id.StartsWith ("_NativeAssets.")) {
-                // handle the dependencies
-                var platform = id.Substring (id.IndexOf (".") + 1);
-                var files = xdoc.Root.Element ("files");
-                files.Add (new XElement ("file",
-                    new XAttribute ("src", $"**"),
-                    new XAttribute ("target", $"tools/{platform}")));
-            }
-            // add the readme
-            {
-                var files = xdoc.Root.Element ("files");
-                files.Add (new XElement ("file",
-                    new XAttribute ("src", MakeAbsolute(File("./scripts/nuget/README.md")).FullPath),
-                    new XAttribute ("target", $"README.md")));
+                {
+                    var files = xdoc.Root.Element ("files");
+                    files.Add (new XElement ("file",
+                        new XAttribute ("src", MakeAbsolute (File ("./scripts/nuget/README.md")).FullPath),
+                        new XAttribute ("target", "README.md")));
+                }
+
+                xdoc.Save (nuspec);
+                RunDotNetPack (
+                    "./scripts/nuget/NuGet.csproj",
+                    OUTPUT_SPECIAL_NUGETS_PATH,
+                    bl: $".{id}.{version.Key}",
+                    additionalArgs: "/restore /nologo",
+                    properties: new Dictionary<string, string> {
+                        { "NuspecFile", MakeAbsolute (File (nuspec)).FullPath },
+                    });
             }
 
-            // save and pack
-            xdoc.Save (nuspec);
-            RunDotNetPack (
-                "./scripts/nuget/NuGet.csproj",
-                OUTPUT_SPECIAL_NUGETS_PATH,
-                bl: $".{id}.{version.Key}",
-                additionalArgs: "/restore /nologo",
-                properties: new Dictionary<string, string> {
-                    { "NuspecFile", MakeAbsolute(File(nuspec)).FullPath },
-                });
+            DeleteFiles ($"./output/{path}/*.nuspec");
         }
+    }
 
-        DeleteFiles ($"./output/{path}/*.nuspec");
+    // NuGets and Symbols: bin-pack all nupkgs into ~200 MB numbered chunks
+    if (GetFiles ("./output/nugets/*.nupkg").Count > 0) {
+        const long MAX_CHUNK_SIZE = 200L * 1024 * 1024;
+
+        var metaPackages = new[] {
+            new { Id = "_NuGets",         SourceDir = "nugets",         IncludeSnupkg = false, IsPreview = false },
+            new { Id = "_NuGetsPreview",  SourceDir = "nugets",         IncludeSnupkg = false, IsPreview = true },
+            new { Id = "_Symbols",        SourceDir = "nugets-symbols", IncludeSnupkg = true,  IsPreview = false },
+            new { Id = "_SymbolsPreview", SourceDir = "nugets-symbols", IncludeSnupkg = true,  IsPreview = true },
+        };
+
+        foreach (var meta in metaPackages) {
+            // enumerate matching files
+            var allFiles = GetFiles ($"./output/{meta.SourceDir}/*.nupkg").ToList ();
+            if (meta.IncludeSnupkg)
+                allFiles.AddRange (GetFiles ($"./output/{meta.SourceDir}/*.snupkg"));
+
+            var matchingFiles = allFiles
+                .Where (f => {
+                    var name = f.GetFilename ().ToString ();
+                    if (name.StartsWith ("_")) return false;
+                    return meta.IsPreview ? name.Contains ("-") : !name.Contains ("-");
+                })
+                .Select (f => new { Path = f, Size = new FileInfo (f.FullPath).Length })
+                .OrderByDescending (f => f.Size)
+                .ToList ();
+
+            if (matchingFiles.Count == 0)
+                continue;
+
+            // bin-pack using first-fit decreasing
+            var chunks = new List<List<FilePath>> ();
+            var chunkSizes = new List<long> ();
+
+            foreach (var file in matchingFiles) {
+                var placed = false;
+                for (int i = 0; i < chunks.Count; i++) {
+                    if (chunkSizes[i] + file.Size <= MAX_CHUNK_SIZE) {
+                        chunks[i].Add (file.Path);
+                        chunkSizes[i] += file.Size;
+                        placed = true;
+                        break;
+                    }
+                }
+                if (!placed) {
+                    chunks.Add (new List<FilePath> { file.Path });
+                    chunkSizes.Add (file.Size);
+                }
+            }
+
+            Information ("{0}: {1} files -> {2} chunk(s)", meta.Id, matchingFiles.Count, chunks.Count);
+            for (int i = 0; i < chunks.Count; i++) {
+                Information ("  Chunk {0}: {1} files, {2:F1} MB",
+                    i + 1, chunks[i].Count, chunkSizes[i] / 1024.0 / 1024.0);
+            }
+
+            foreach (var version in versions) {
+                var packageVersion = version.Value;
+
+                // pack each chunk as a numbered dependency
+                for (int i = 0; i < chunks.Count; i++) {
+                    var chunkId = $"{meta.Id}.Dependencies.{i + 1}";
+                    var nuspec = $"./output/{meta.SourceDir}/{chunkId}.nuspec";
+
+                    DeleteFiles ($"./output/{meta.SourceDir}/*.nuspec");
+
+                    var xdoc = XDocument.Load ("./scripts/nuget/_Dependencies.nuspec");
+                    var xmeta = xdoc.Root.Element ("metadata");
+                    xmeta.Element ("id").Value = chunkId;
+                    xmeta.Element ("version").Value = packageVersion;
+                    xmeta.Element ("title").Value = $"{meta.Id.TrimStart ('_')} (Part {i + 1})";
+                    xmeta.Element ("description").Value =
+                        $"Part {i + 1} of {chunks.Count} of the {meta.Id.TrimStart ('_')} packages.";
+                    xmeta.Element ("summary").Value = xmeta.Element ("description").Value;
+
+                    var files = xdoc.Root.Element ("files");
+                    foreach (var file in chunks[i]) {
+                        files.Add (new XElement ("file",
+                            new XAttribute ("src", MakeAbsolute (file).FullPath),
+                            new XAttribute ("target", "tools/")));
+                    }
+                    files.Add (new XElement ("file",
+                        new XAttribute ("src", MakeAbsolute (File ("./scripts/nuget/README.md")).FullPath),
+                        new XAttribute ("target", "README.md")));
+
+                    xdoc.Save (nuspec);
+                    RunDotNetPack (
+                        "./scripts/nuget/NuGet.csproj",
+                        OUTPUT_SPECIAL_NUGETS_PATH,
+                        bl: $".{chunkId}.{version.Key}",
+                        additionalArgs: "/restore /nologo",
+                        properties: new Dictionary<string, string> {
+                            { "NuspecFile", MakeAbsolute (File (nuspec)).FullPath },
+                        });
+                }
+
+                // pack the parent meta-package with dependencies on all chunks
+                {
+                    var nuspec = $"./output/{meta.SourceDir}/{meta.Id}.nuspec";
+
+                    DeleteFiles ($"./output/{meta.SourceDir}/*.nuspec");
+
+                    var xdoc = XDocument.Load ($"./scripts/nuget/{meta.Id}.nuspec");
+                    var xmeta = xdoc.Root.Element ("metadata");
+                    xmeta.Element ("version").Value = packageVersion;
+
+                    var dependencies = xmeta.Element ("dependencies");
+                    for (int i = 0; i < chunks.Count; i++) {
+                        dependencies.Add (new XElement ("dependency",
+                            new XAttribute ("id", $"{meta.Id}.Dependencies.{i + 1}"),
+                            new XAttribute ("version", packageVersion)));
+                    }
+
+                    var files = xdoc.Root.Element ("files");
+                    files.Add (new XElement ("file",
+                        new XAttribute ("src", MakeAbsolute (File ("./scripts/nuget/README.md")).FullPath),
+                        new XAttribute ("target", "README.md")));
+
+                    xdoc.Save (nuspec);
+                    RunDotNetPack (
+                        "./scripts/nuget/NuGet.csproj",
+                        OUTPUT_SPECIAL_NUGETS_PATH,
+                        bl: $".{meta.Id}.{version.Key}",
+                        additionalArgs: "/restore /nologo",
+                        properties: new Dictionary<string, string> {
+                            { "NuspecFile", MakeAbsolute (File (nuspec)).FullPath },
+                        });
+                }
+
+                DeleteFiles ($"./output/{meta.SourceDir}/*.nuspec");
+            }
+        }
     }
 });
 

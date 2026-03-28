@@ -50,6 +50,71 @@ namespace SkiaSharpGenerator
 
 			var options = new CppParserOptions();
 
+			if (OperatingSystem.IsMacOS())
+			{
+				Log?.LogVerbose("Looking for Clang include folder...");
+
+				var root = "/Library/Developer/CommandLineTools/usr/lib/clang/";
+				if (Directory.Exists(root))
+				{
+					var version = Directory.GetDirectories(root)
+						.OrderByDescending(d => Version.TryParse(Path.GetFileName(d), out var v) ? v : new Version(0, 0, 0))
+						.FirstOrDefault();
+					if (version is not null)
+					{
+						Log?.LogVerbose($"Found Clang include folder: {version}");
+						options.SystemIncludeFolders.Add(Path.Combine(root, version, "include"));
+					}
+					else
+					{
+						Log?.LogWarning("Clang versioned include folder not found, parsing may fail.");
+					}
+				}
+				else
+				{
+					Log?.LogWarning("Clang include folder not found, parsing may fail.");
+				}
+
+				// Add macOS SDK system include path (needed for #include_next in clang headers)
+				var sdkPaths = new[]
+				{
+					"/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include",
+				};
+				var process = new System.Diagnostics.Process
+				{
+					StartInfo = new System.Diagnostics.ProcessStartInfo
+					{
+						FileName = "xcrun",
+						Arguments = "--show-sdk-path",
+						RedirectStandardOutput = true,
+						UseShellExecute = false,
+						CreateNoWindow = true,
+					}
+				};
+				try
+				{
+					process.Start();
+					var xcrunSdkPath = process.StandardOutput.ReadToEnd().Trim();
+					process.WaitForExit();
+					if (!string.IsNullOrEmpty(xcrunSdkPath))
+						sdkPaths = new[] { Path.Combine(xcrunSdkPath, "usr/include") };
+				}
+				catch
+				{
+					// fall back to default paths
+				}
+
+				foreach (var sdkPath in sdkPaths)
+				{
+					if (Directory.Exists(sdkPath))
+					{
+						Log?.LogVerbose($"Found macOS SDK include folder: {sdkPath}");
+						options.SystemIncludeFolders.Add(sdkPath);
+						break;
+					}
+				}
+			}
+
 			foreach (var header in config.IncludeDirs)
 			{
 				var path = Path.Combine(SkiaRoot, header);
