@@ -509,13 +509,25 @@ namespace SkiaSharp
 			return SkiaApi.sk_paint_get_fill_path (Handle, src.Handle, dst.Handle, cullRect, &matrix);
 		}
 
+		/// <summary>
+		/// Gets a value indicating whether the paint can quickly expand geometry bounds without additional path analysis.
+		/// </summary>
 		public bool CanComputeFastBounds =>
 			SkiaApi.sk_paint_can_compute_fast_bounds (Handle);
 
+		/// <summary>
+		/// Expands the specified geometry bounds to include the effects that this paint applies when drawing.
+		/// </summary>
+		/// <param name="orig">The original geometry bounds.</param>
+		/// <returns>The adjusted bounds for quick reject calculations.</returns>
 		public SKRect ComputeFastBounds (SKRect orig)
 		{
-			SkiaApi.sk_paint_compute_fast_bounds (Handle, &orig, &orig);
-			return orig;
+			if (!CanComputeFastBounds)
+				throw new InvalidOperationException ("This SKPaint cannot compute fast bounds.");
+
+			var storage = orig;
+			SkiaApi.sk_paint_compute_fast_bounds (Handle, &orig, &storage);
+			return storage;
 		}
 
 		// CountGlyphs

@@ -83,9 +83,12 @@ namespace SkiaSharp.Tests
 				StrokeWidth = 10,
 			};
 			var bounds = SKRect.Create(10, 10, 20, 30);
+			var original = bounds;
 
 			Assert.True(paint.CanComputeFastBounds);
 			Assert.Equal(SKRect.Create(5, 5, 30, 40), paint.ComputeFastBounds(bounds));
+			Assert.Equal(SKRect.Create(10, 10, 20, 30), original);
+			Assert.Equal(original, bounds);
 		}
 
 		[SkippableFact]
@@ -95,8 +98,10 @@ namespace SkiaSharp.Tests
 			using var paint = new SKPaint {
 				PathEffect = effect,
 			};
+			var bounds = SKRect.Create(10, 10, 20, 30);
 
 			Assert.False(paint.CanComputeFastBounds);
+			Assert.Throws<InvalidOperationException> (() => paint.ComputeFastBounds(bounds));
 		}
 
 		// Test for issue #276
