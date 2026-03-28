@@ -437,6 +437,47 @@ namespace SkiaSharp
 		private static SKImageFilter CreateShader (SKShader? shader, bool dither, SKRect* cropRect) =>
 			GetObject (SkiaApi.sk_imagefilter_new_shader (shader?.Handle ?? IntPtr.Zero, dither, cropRect));
 
+		/// <summary>
+		/// Maps a source rectangle through this image filter using the supplied current transformation matrix.
+		/// Use this for image-filter effects such as blur or drop shadow when paint fast-bounds calculations are not sufficient.
+		/// </summary>
+		/// <param name="src">The source rectangle to map through the filter graph.</param>
+		/// <param name="ctm">The current transformation matrix used when the filter is evaluated.</param>
+		/// <param name="direction">
+		/// Use <see cref="SKImageFilterMapDirection.Forward"/> to determine the conservative destination area touched by the filter output.
+		/// </param>
+		/// <returns>A conservative rectangle that contains the affected area.</returns>
+		public SKRectI FilterBounds (SKRectI src, in SKMatrix ctm, SKImageFilterMapDirection direction)
+		{
+			var matrix = ctm;
+			var bounds = src;
+			SkiaApi.sk_imagefilter_filter_bounds (Handle, &src, &matrix, direction, null, &bounds);
+			return bounds;
+		}
+
+		/// <summary>
+		/// Maps a source rectangle through this image filter using the supplied current transformation matrix and an explicit input bounds hint.
+		/// Provide <paramref name="inputRect"/> when using <see cref="SKImageFilterMapDirection.Reverse"/> to estimate which source pixels are required.
+		/// </summary>
+		/// <param name="src">The source rectangle to map through the filter graph.</param>
+		/// <param name="ctm">The current transformation matrix used when the filter is evaluated.</param>
+		/// <param name="direction">
+		/// Use <see cref="SKImageFilterMapDirection.Reverse"/> to estimate which source pixels are required to fill the destination rectangle.
+		/// </param>
+		/// <param name="inputRect">The input bounds hint used for reverse mapping.</param>
+		/// <returns>A conservative rectangle that contains the affected area.</returns>
+		/// <exception cref="ArgumentException"><paramref name="inputRect"/> is only used for reverse mapping.</exception>
+		public SKRectI FilterBounds (SKRectI src, in SKMatrix ctm, SKImageFilterMapDirection direction, SKRectI inputRect)
+		{
+			if (direction == SKImageFilterMapDirection.Forward)
+				throw new ArgumentException ("Input bounds are only used for reverse mapping.", nameof (inputRect));
+
+			var matrix = ctm;
+			var bounds = src;
+			SkiaApi.sk_imagefilter_filter_bounds (Handle, &src, &matrix, direction, &inputRect, &bounds);
+			return bounds;
+		}
+
 		//
 
 		internal static SKImageFilter GetObject (IntPtr handle) =>
