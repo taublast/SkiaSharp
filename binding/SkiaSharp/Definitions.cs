@@ -62,6 +62,22 @@ namespace SkiaSharp
 		Rgba10x6 = 24,
 	}
 
+	/// <summary>
+	/// Specifies how <see cref="SKImageFilter.FilterBounds(SKRectI, in SKMatrix, SKImageFilterMapDirection)"/> maps rectangles through an image filter graph.
+	/// </summary>
+	public enum SKImageFilterMapDirection
+	{
+		/// <summary>
+		/// Maps source content forward to the conservative destination bounds touched by the filter output.
+		/// </summary>
+		Forward = 0,
+
+		/// <summary>
+		/// Maps destination bounds backward to the conservative source bounds required to produce them.
+		/// </summary>
+		Reverse = 1,
+	}
+
 	public static partial class SkiaExtensions
 	{
 		public static bool IsBgr (this SKPixelGeometry pg) =>
