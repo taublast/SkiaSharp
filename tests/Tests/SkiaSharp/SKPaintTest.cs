@@ -75,6 +75,30 @@ namespace SkiaSharp.Tests
 			Assert.Equal(4, fillPath.Points.Distinct().Count());
 		}
 
+		[SkippableFact]
+		public void ComputeFastBoundsMatchesStrokeInflation()
+		{
+			using var paint = new SKPaint {
+				IsStroke = true,
+				StrokeWidth = 10,
+			};
+			var bounds = SKRect.Create(10, 10, 20, 30);
+
+			Assert.True(paint.CanComputeFastBounds);
+			Assert.Equal(SKRect.Create(5, 5, 30, 40), paint.ComputeFastBounds(bounds));
+		}
+
+		[SkippableFact]
+		public void ComputeFastBoundsReportsUnsupportedEffects()
+		{
+			using var effect = SKPathEffect.CreateDash(new float[] { 10, 5 }, 0);
+			using var paint = new SKPaint {
+				PathEffect = effect,
+			};
+
+			Assert.False(paint.CanComputeFastBounds);
+		}
+
 		// Test for issue #276
 		[SkippableFact]
 		public void NonAntiAliasedTextOnScaledCanvasIsCorrect()

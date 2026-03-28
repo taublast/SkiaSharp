@@ -509,6 +509,15 @@ namespace SkiaSharp
 			return SkiaApi.sk_paint_get_fill_path (Handle, src.Handle, dst.Handle, cullRect, &matrix);
 		}
 
+		public bool CanComputeFastBounds =>
+			SkiaApi.sk_paint_can_compute_fast_bounds (Handle);
+
+		public SKRect ComputeFastBounds (SKRect orig)
+		{
+			SkiaApi.sk_paint_compute_fast_bounds (Handle, &orig, &orig);
+			return orig;
+		}
+
 		// CountGlyphs
 
 		[Obsolete ($"Use {nameof (SKFont)}.{nameof (SKFont.CountGlyphs)}() instead.")]
