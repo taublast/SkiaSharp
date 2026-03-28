@@ -522,12 +522,22 @@ namespace SkiaSharp
 		/// <returns>The adjusted bounds for quick reject calculations.</returns>
 		public SKRect ComputeFastBounds (SKRect orig)
 		{
-			if (!CanComputeFastBounds)
-				throw new InvalidOperationException ("This SKPaint cannot compute fast bounds.");
-
 			var storage = orig;
 			SkiaApi.sk_paint_compute_fast_bounds (Handle, &orig, &storage);
 			return storage;
+		}
+
+		/// <summary>
+		/// Expands the specified geometry bounds to include the effects that this paint applies when drawing.
+		/// </summary>
+		/// <param name="orig">The original geometry bounds.</param>
+		/// <returns>The adjusted bounds for quick reject calculations.</returns>
+		public SKRect ComputeFastBoundsWithCheck (SKRect orig)
+		{
+			if (!CanComputeFastBounds)
+				throw new InvalidOperationException ("This SKPaint cannot compute fast bounds.");
+
+			return ComputeFastBounds (orig);
 		}
 
 		// CountGlyphs

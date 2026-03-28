@@ -89,10 +89,11 @@ namespace SkiaSharp.Tests
 			Assert.Equal(SKRect.Create(5, 5, 30, 40), paint.ComputeFastBounds(bounds));
 			Assert.Equal(SKRect.Create(10, 10, 20, 30), original);
 			Assert.Equal(original, bounds);
+			Assert.Equal(SKRect.Create(5, 5, 30, 40), paint.ComputeFastBoundsWithCheck(bounds));
 		}
 
 		[SkippableFact]
-		public void ComputeFastBoundsReportsUnsupportedEffects()
+		public void ComputeFastBoundsWithCheckReportsUnsupportedEffects()
 		{
 			using var effect = SKPathEffect.CreateDash(new float[] { 10, 5 }, 0);
 			using var paint = new SKPaint {
@@ -101,7 +102,7 @@ namespace SkiaSharp.Tests
 			var bounds = SKRect.Create(10, 10, 20, 30);
 
 			Assert.False(paint.CanComputeFastBounds);
-			Assert.Throws<InvalidOperationException> (() => paint.ComputeFastBounds(bounds));
+			Assert.Throws<InvalidOperationException> (() => paint.ComputeFastBoundsWithCheck(bounds));
 		}
 
 		// Test for issue #276
