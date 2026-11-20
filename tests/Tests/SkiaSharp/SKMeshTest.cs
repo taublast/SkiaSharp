@@ -439,8 +439,7 @@ namespace SkiaSharp.Tests
 		[Fact]
 		public void MeshRendersRedPixelOnGpuSurface()
 		{
-			// SkMesh rendering only works on GPU-backed surfaces (SkBitmapDevice::drawMesh
-			// is a no-op in upstream Skia), so this test requires a real GL context.
+			// GPU-backed vertex and index buffers: this test requires a real GL context.
 			using var ctx = CreateGlContext();
 			ctx.MakeCurrent();
 			using var grContext = GRContext.CreateGl();
@@ -612,10 +611,9 @@ namespace SkiaSharp.Tests
 		}
 
 		[Fact]
-		public void DrawMeshOnRasterSurfaceIsNoOp()
+		public void DrawMeshOnRasterSurfaceDrawsMesh()
 		{
-			// On a CPU/raster surface DrawMesh is a documented no-op (upstream Skia limitation):
-			// it must not crash and must not modify the canvas.
+			// SkBitmapDevice::drawMesh runs the mesh programs on the CPU, so a raster surface shows the mesh.
 			using var cs = SKColorSpace.CreateSrgb();
 			using var spec = SKMeshSpecification.Create(
 				SimpleAttributes, sizeof(float) * 2, EmptyVaryings,
@@ -640,14 +638,15 @@ namespace SkiaSharp.Tests
 
 			using var img = surface.Snapshot();
 			using var bmp = SKBitmap.FromImage(img);
-			Assert.Equal(SKColors.White, bmp.GetPixel(50, 50)); // unchanged — mesh was not drawn
+			Assert.Equal(SKColors.Red, bmp.GetPixel(50, 50));
+			Assert.Equal(SKColors.Red, bmp.GetPixel(10, 10));
 		}
 
 		[Fact]
 		public void MeshWithVaryingsAndPaintShaderDoesNotCrash()
 		{
-			// Verifies varyings + UV shader setup works (creation and draw don't crash)
-			// Actual pixel output requires GPU backend (SkBitmapDevice::drawMesh is a no-op)
+			// Varyings + a paint shader evaluated at the coordinates the fragment program returns,
+			// drawn on a raster surface.
 			const string vs = @"
 				Varyings main(const Attributes attrs) {
 					Varyings v;
@@ -690,7 +689,6 @@ namespace SkiaSharp.Tests
 			Assert.NotNull(mesh);
 			Assert.True(mesh.IsValid);
 
-			// Draw on CPU surface — no pixels expected, must not crash
 			using var surface = SKSurface.Create(new SKImageInfo(100, 100));
 			var canvas = surface.Canvas;
 			canvas.Clear(SKColors.White);
@@ -699,6 +697,25 @@ namespace SkiaSharp.Tests
 			using var paint = new SKPaint { Shader = shader };
 			canvas.DrawMesh(mesh, paint);
 			canvas.Flush();
+
+			using var img = surface.Snapshot();
+			using var bmp = SKBitmap.FromImage(img);
+			Assert.Equal(SKColors.Green, bmp.GetPixel(50, 50));
+		}
+
+		[Fact]
+		public async Task MeshRendersOnRasterRenderer()
+		{
+			// The same scene as the GPU renderers below (uniform + child shader), drawn by the raster renderer.
+			var renderer = RendererCatalog.Get(GpuBackends.Raster);
+			var scene = new MeshRenderTestScene();
+			var pixels = await renderer.RenderAsync(scene, scene.Info, TestContext.Current.CancellationToken);
+
+			var offset = (50 * scene.Info.Width + 50) * 4;
+			Assert.Equal(0, pixels[offset + 0]);
+			Assert.Equal(255, pixels[offset + 1]);
+			Assert.Equal(0, pixels[offset + 2]);
+			Assert.Equal(255, pixels[offset + 3]);
 		}
 
 		public static IEnumerable<object[]> GpuRendererNames()
