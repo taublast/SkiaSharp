@@ -16,6 +16,8 @@ namespace SkiaSharp.Views.Android
 		private bool designMode;
 		private SurfaceFactory surfaceFactory;
 		private float density;
+		private bool isDrawing;
+		private bool disposeAfterDraw;
 
 		/// <summary>Initializes a new instance of the <see cref="T:SkiaSharp.Views.Android.SKCanvasView" /> class.</summary>
 		/// <param name="context">The <see cref="T:Android.Content.Context" /> the view is running in, through which it can access the current theme, resources, etc.</param>
@@ -137,10 +139,26 @@ namespace SkiaSharp.Views.Android
 			}
 
 			// draw using SkiaSharp
-			OnPaintSurface(new SKPaintSurfaceEventArgs(surface, info.WithSize(userVisibleSize), info));
+			// the handler may detach or dispose this view (for example by navigating away), so the
+			// bitmap is only released after the frame has been drawn
+			isDrawing = true;
+			try
+			{
+				OnPaintSurface(new SKPaintSurfaceEventArgs(surface, info.WithSize(userVisibleSize), info));
+			}
+			finally
+			{
+				isDrawing = false;
+			}
 
 			// draw the surface to the view
 			surfaceFactory.DrawSurface(surface, canvas);
+
+			if (disposeAfterDraw)
+			{
+				disposeAfterDraw = false;
+				surfaceFactory.Dispose();
+			}
 		}
 
 		/// <summary>This is called during layout when the size of this view has changed. If you were just added to the view hierarchy, you're called with the old values of 0.</summary>
@@ -225,7 +243,7 @@ namespace SkiaSharp.Views.Android
 		/// <remarks />
 		protected override void OnDetachedFromWindow()
 		{
-			surfaceFactory.Dispose();
+			DisposeSurfaceFactory();
 
 			base.OnDetachedFromWindow();
 		}
@@ -245,9 +263,18 @@ namespace SkiaSharp.Views.Android
 		/// <remarks>Always dispose the object before you release your last reference to the <see cref="T:SkiaSharp.Views.Android.SKCanvasView" />. Otherwise, the resources it is using will not be freed until the garbage collector calls the finalizer.</remarks>
 		protected override void Dispose(bool disposing)
 		{
-			surfaceFactory.Dispose();
+			DisposeSurfaceFactory();
 
 			base.Dispose(disposing);
+		}
+
+		private void DisposeSurfaceFactory()
+		{
+			// detached or disposed from inside PaintSurface: OnDraw still needs the bitmap for this frame
+			if (isDrawing)
+				disposeAfterDraw = true;
+			else
+				surfaceFactory.Dispose();
 		}
 	}
 }
